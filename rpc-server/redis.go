@@ -12,11 +12,10 @@ type RedisClient struct {
 func (c *RedisClient) InitClient(ctx context.Context, address, password string) error {
 	r := redis.NewClient(&redis.Options{
 		Addr:     address,
-		Password: password, // no password set
-		DB:       0,        // use default DB
+		Password: password,
+		DB:       0,
 	})
 
-	// test connection
 	if err := r.Ping(ctx).Err(); err != nil {
 		return err
 	}
@@ -25,14 +24,7 @@ func (c *RedisClient) InitClient(ctx context.Context, address, password string) 
 	return nil
 }
 
-type Message struct {
-	Sender    string `json:"sender"`
-	Message   string `json:"message"`
-	Timestamp int64  `json:"timestamp"`
-}
-
 func (c *RedisClient) SaveMessage(ctx context.Context, roomID string, message *Message) error {
-	// Store the message in json
 	text, err := json.Marshal(message)
 	if err != nil {
 		return err
@@ -59,13 +51,11 @@ func (c *RedisClient) GetMessagesByRoomID(ctx context.Context, roomID string, st
 	)
 
 	if reverse {
-		// Desc order with time -> first message is the latest message
 		rawMessages, err = c.cli.ZRevRange(ctx, roomID, start, end).Result()
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		// Asc order with time -> first message is the earliest message
 		rawMessages, err = c.cli.ZRange(ctx, roomID, start, end).Result()
 		if err != nil {
 			return nil, err
